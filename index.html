@@ -1,0 +1,1320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Redstone AI · Team Reports</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><polygon points=%2250,10 90,40 75,90 25,90 10,40%22 fill=%22%23dc2626%22/></svg>">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+:root{
+  --bg:#f8f5f5; --card:#fff; --border:#e8e3e3; --text:#1a1a1a; --muted:#6b6b6b;
+  --primary:#dc2626; --primary-dark:#991b1b; --primary-light:#fee2e2;
+  --success:#16a34a; --warning:#f59e0b; --danger:#dc2626;
+  --purple:#7c3aed; --teal:#14b8a6; --orange:#f97316;
+  --navy:#0f0f0f; --brand:#dc2626; --brand-glow:#fca5a5;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--text);font-size:14px}
+.app{display:flex;min-height:100vh}
+.sidebar{width:250px;background:linear-gradient(180deg,#0f0f0f 0%,#1a0f0f 100%);color:#fff;padding:0;position:sticky;top:0;height:100vh;overflow-y:auto;display:flex;flex-direction:column;border-right:1px solid #2a1818}
+.brand{padding:24px 20px;border-bottom:1px solid rgba(220,38,38,0.2);background:linear-gradient(135deg,rgba(220,38,38,0.1) 0%,transparent 100%);display:flex;align-items:center;gap:12px}
+.brand-logo{width:42px;height:42px;background:linear-gradient(135deg,#dc2626 0%,#7f1d1d 100%);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 12px rgba(220,38,38,0.4)}
+.brand-logo svg{width:26px;height:26px}
+.brand-text h1{font-size:16px;font-weight:800;letter-spacing:0.5px;color:#fff}
+.brand-text h1 span{color:var(--brand);font-weight:900}
+.brand-text p{font-size:10px;color:#a1a1aa;margin-top:2px;text-transform:uppercase;letter-spacing:1px}
+.nav-section{padding:14px 0;flex:1}
+.nav-label{font-size:10px;color:#71717a;text-transform:uppercase;letter-spacing:1.5px;padding:8px 22px;font-weight:600}
+.nav-item{display:flex;align-items:center;gap:12px;padding:11px 22px;color:#d4d4d8;cursor:pointer;border-left:3px solid transparent;transition:all 0.15s;font-size:13px;font-weight:500}
+.nav-item:hover{background:rgba(220,38,38,0.08);color:#fff}
+.nav-item.active{background:rgba(220,38,38,0.15);color:#fff;border-left-color:var(--brand)}
+.nav-item.active::before{content:'';position:absolute;left:0;width:3px;height:100%;background:var(--brand);box-shadow:0 0 12px var(--brand)}
+.sync-status{padding:10px 20px;font-size:11px;color:#94a3b8;border-top:1px solid rgba(255,255,255,0.1);margin-top:auto}
+.sync-status .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:middle}
+.dot.green{background:var(--success)}
+.dot.gray{background:#6b7280}
+.dot.red{background:var(--danger)}
+.main{flex:1;padding:28px 36px;max-width:calc(100vw - 250px);background:var(--bg)}
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:12px;padding-bottom:18px;border-bottom:2px solid #f1e9e9}
+.header h2{font-size:26px;font-weight:800;color:var(--navy);letter-spacing:-0.3px}
+.header h2::before{content:'';display:inline-block;width:4px;height:24px;background:linear-gradient(180deg,var(--brand) 0%,var(--primary-dark) 100%);margin-right:12px;vertical-align:middle;border-radius:2px}
+.header p{color:var(--muted);font-size:13px;margin-top:6px;margin-left:16px}
+.btn{padding:9px 16px;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all 0.2s}
+.btn-primary{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%);color:#fff;box-shadow:0 2px 6px rgba(220,38,38,0.25)}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(220,38,38,0.35)}
+.btn-success{background:var(--success);color:#fff}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-warning{background:var(--warning);color:#fff}
+.btn-outline{background:#fff;color:var(--text);border:1px solid var(--border)}
+.btn-outline:hover{background:#f3f4f6}
+.btn-sm{padding:5px 10px;font-size:11px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,0.04)}
+.card-title{font-size:15px;font-weight:700;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;color:var(--navy)}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:24px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px}
+.stat-label{font-size:11px;text-transform:uppercase;color:var(--muted);letter-spacing:0.5px;margin-bottom:8px}
+.stat-value{font-size:28px;font-weight:700;color:var(--navy)}
+.stat-sub{font-size:11px;color:var(--muted);margin-top:4px}
+.stat-card.blue{border-top:3px solid var(--primary)}
+.stat-card.green{border-top:3px solid var(--success)}
+.stat-card.orange{border-top:3px solid var(--warning)}
+.stat-card.purple{border-top:3px solid var(--purple)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:900px){.row{grid-template-columns:1fr}}
+table{width:100%;border-collapse:collapse}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--border);font-size:13px}
+th{background:#f9fafb;font-weight:600;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:0.4px}
+tr:hover{background:#f9fafb}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:700px){.form-grid{grid-template-columns:1fr}}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.field label{font-size:12px;font-weight:600;color:var(--text)}
+.field input,.field select,.field textarea{padding:9px 12px;border:1px solid var(--border);border-radius:6px;font-size:13px;font-family:inherit;background:#fff}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(59,130,246,0.1)}
+.field textarea{resize:vertical;min-height:60px}
+.badge{display:inline-block;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:600}
+.badge-blue{background:#dbeafe;color:#1e40af}
+.badge-green{background:#dcfce7;color:#166534}
+.badge-orange{background:#fed7aa;color:#9a3412}
+.badge-red{background:#fee2e2;color:#991b1b}
+.badge-purple{background:#ede9fe;color:#5b21b6}
+.badge-gray{background:#f3f4f6;color:#374151}
+.project-row{padding:12px;border:1px solid var(--border);border-radius:8px;margin-bottom:10px;background:#fafbfc}
+.project-row .pr-grid{display:grid;grid-template-columns:2fr 100px 1fr 130px auto;gap:8px;align-items:start;margin-bottom:8px}
+.project-row .pr-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.project-row input,.project-row textarea,.project-row select{padding:6px 8px;font-size:12px;border:1px solid var(--border);border-radius:4px;width:100%}
+.project-row textarea{min-height:50px;resize:vertical}
+.timer-display{padding:8px 12px;background:#fef3c7;border:1px solid #fcd34d;border-radius:6px;font-family:monospace;font-size:14px;font-weight:700;text-align:center}
+.timer-display.running{background:#dcfce7;border-color:#86efac;color:#166534;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.7}}
+.time-logs{margin-top:8px;padding-top:8px;border-top:1px dashed var(--border)}
+.time-log-item{display:inline-block;background:#f3f4f6;padding:3px 8px;margin:2px;border-radius:4px;font-size:11px;font-family:monospace}
+.btn-icon{background:transparent;border:none;color:var(--danger);cursor:pointer;font-size:18px;padding:4px 8px}
+.empty{text-align:center;padding:40px;color:var(--muted)}
+.empty-icon{font-size:48px;margin-bottom:12px;opacity:0.4}
+.tabs{display:flex;gap:4px;margin-bottom:20px;border-bottom:2px solid var(--border);overflow-x:auto}
+.tab{padding:10px 16px;background:transparent;border:none;cursor:pointer;font-size:13px;font-weight:600;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap}
+.tab.active{color:var(--primary);border-bottom-color:var(--primary)}
+.tab:hover{color:var(--text)}
+.member-pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;background:#f3f4f6;border-radius:20px;font-size:12px;font-weight:600}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--primary);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0}
+.avatar.lg{width:48px;height:48px;font-size:18px}
+.member-card{display:flex;align-items:center;gap:12px;padding:14px;border:1px solid var(--border);border-radius:8px;margin-bottom:10px;background:#fff;cursor:pointer;transition:all 0.2s}
+.member-card:hover{border-color:var(--primary);box-shadow:0 2px 8px rgba(59,130,246,0.1)}
+.member-info{flex:1}
+.member-info h4{font-size:14px;font-weight:700;margin-bottom:2px}
+.member-info p{font-size:12px;color:var(--muted)}
+.report-block{padding:16px;background:#f9fafb;border-radius:8px;margin-bottom:14px;border-left:4px solid var(--primary)}
+.report-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px}
+.report-meta strong{color:var(--navy)}
+.report-projects{margin-top:10px}
+.project-item{padding:10px;background:#fff;border:1px solid var(--border);border-radius:6px;margin-bottom:8px}
+.project-item h5{font-weight:700;font-size:13px;margin-bottom:6px;color:var(--navy)}
+.project-item p{font-size:12px;color:var(--text);line-height:1.5;margin-bottom:4px}
+.project-item .label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.4px}
+.chart-container{position:relative;height:280px}
+.filter-bar{display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
+.filter-bar select,.filter-bar input{padding:8px 12px;border:1px solid var(--border);border-radius:6px;font-size:13px;background:#fff}
+.alert{padding:12px 16px;border-radius:6px;margin-bottom:16px;font-size:13px}
+.alert-info{background:#dbeafe;color:#1e40af;border:1px solid #93c5fd}
+.alert-success{background:#dcfce7;color:#166534;border:1px solid #86efac}
+.alert-warning{background:#fef3c7;color:#92400e;border:1px solid #fcd34d}
+.toggle{position:relative;display:inline-block;width:44px;height:24px}
+.toggle input{opacity:0;width:0;height:0}
+.toggle .slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#cbd5e1;border-radius:24px;transition:0.3s}
+.toggle .slider:before{position:absolute;content:"";height:18px;width:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:0.3s}
+.toggle input:checked+.slider{background:var(--success)}
+.toggle input:checked+.slider:before{transform:translateX(20px)}
+.print-only{display:none}
+.stat-card.blue{border-top:3px solid var(--brand)}
+.stat-card.blue .stat-value{color:var(--brand)}
+.report-block{border-left-color:var(--brand)!important}
+@media print{
+  .sidebar,.no-print,.header button,#loginOverlay{display:none!important}
+  .main{padding:0;max-width:100%}
+  .print-only{display:block}
+  .card{box-shadow:none;border:1px solid #ddd;page-break-inside:avoid}
+  body{background:#fff}
+}
+
+/* ===== LOGIN SCREEN ===== */
+#loginOverlay{position:fixed;inset:0;background:linear-gradient(135deg,#0f0f0f 0%,#1a0808 50%,#2a0d0d 100%);display:flex;align-items:center;justify-content:center;z-index:99999;font-family:inherit}
+#loginOverlay::before{content:'';position:absolute;width:600px;height:600px;background:radial-gradient(circle,rgba(220,38,38,0.15) 0%,transparent 70%);top:-200px;right:-200px;pointer-events:none}
+#loginOverlay::after{content:'';position:absolute;width:400px;height:400px;background:radial-gradient(circle,rgba(220,38,38,0.1) 0%,transparent 70%);bottom:-100px;left:-100px;pointer-events:none}
+.login-box{background:rgba(255,255,255,0.04);backdrop-filter:blur(20px);border:1px solid rgba(220,38,38,0.2);border-radius:16px;padding:40px 36px;width:380px;max-width:90vw;box-shadow:0 25px 60px rgba(0,0,0,0.6),0 0 80px rgba(220,38,38,0.1);position:relative;z-index:1}
+.login-logo{display:flex;justify-content:center;margin-bottom:18px}
+.login-logo-circle{width:74px;height:74px;background:linear-gradient(135deg,#dc2626 0%,#7f1d1d 100%);border-radius:18px;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 30px rgba(220,38,38,0.5),inset 0 1px 0 rgba(255,255,255,0.1)}
+.login-logo-circle svg{width:44px;height:44px}
+.login-title{font-size:24px;font-weight:800;color:#fff;text-align:center;margin-bottom:6px;letter-spacing:0.3px}
+.login-title span{color:var(--brand)}
+.login-subtitle{font-size:12px;color:#a1a1aa;text-align:center;margin-bottom:32px;text-transform:uppercase;letter-spacing:2px}
+.login-field{margin-bottom:16px}
+.login-field label{display:block;font-size:11px;font-weight:600;color:#d4d4d8;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px}
+.login-field input{width:100%;padding:13px 16px;background:rgba(0,0,0,0.4);border:1px solid rgba(220,38,38,0.2);border-radius:8px;color:#fff;font-size:14px;font-family:inherit;transition:all 0.2s}
+.login-field input:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(220,38,38,0.15);background:rgba(0,0,0,0.6)}
+.login-field input::placeholder{color:#52525b}
+.login-btn{width:100%;padding:13px;background:linear-gradient(135deg,#dc2626 0%,#991b1b 100%);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:0.5px;text-transform:uppercase;transition:all 0.2s;box-shadow:0 4px 14px rgba(220,38,38,0.4);margin-top:8px}
+.login-btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(220,38,38,0.5)}
+.login-btn:disabled{opacity:0.6;cursor:wait}
+.login-error{background:rgba(220,38,38,0.15);border:1px solid rgba(220,38,38,0.3);color:#fca5a5;padding:10px 14px;border-radius:6px;font-size:12px;margin-bottom:14px;display:none}
+.login-error.show{display:block;animation:shake 0.4s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+.login-footer{text-align:center;margin-top:24px;color:#52525b;font-size:11px;letter-spacing:1px}
+.login-footer span{color:var(--brand)}
+.app{display:none}
+.app.unlocked{display:flex}
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="loginOverlay">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="login-logo-circle">
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <polygon points="50,10 88,38 76,84 24,84 12,38" fill="#fff" opacity="0.95"/>
+          <polygon points="50,10 88,38 76,84 24,84 12,38" fill="none" stroke="#dc2626" stroke-width="2"/>
+          <polygon points="50,28 70,42 64,68 36,68 30,42" fill="#dc2626" opacity="0.7"/>
+        </svg>
+      </div>
+    </div>
+    <div class="login-title">REDSTONE <span>AI</span></div>
+    <div class="login-subtitle">Team Daily Report Portal</div>
+    <div class="login-error" id="loginError">⚠ Wrong password. Try again.</div>
+    <form onsubmit="event.preventDefault();attemptLogin();">
+      <div class="login-field">
+        <label>Team Password</label>
+        <input type="password" id="loginInput" placeholder="Enter team password" autofocus autocomplete="current-password">
+      </div>
+      <button type="submit" class="login-btn" id="loginBtn">🔓 Access Dashboard</button>
+    </form>
+    <div class="login-footer">© 2026 <span>REDSTONE AI</span> · Internal Tool</div>
+  </div>
+</div>
+
+<div class="app">
+  <aside class="sidebar no-print">
+    <div class="brand">
+      <div class="brand-logo">
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <polygon points="50,10 88,38 76,84 24,84 12,38" fill="#fff" opacity="0.95"/>
+          <polygon points="50,28 70,42 64,68 36,68 30,42" fill="#7f1d1d" opacity="0.6"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <h1>REDSTONE <span>AI</span></h1>
+        <p>Team Reports</p>
+      </div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Reports</div>
+      <div class="nav-item active" data-view="dashboard">📈 Dashboard</div>
+      <div class="nav-item" data-view="person">👤 Per-Person</div>
+      <div class="nav-item" data-view="combined">📋 Combined Report</div>
+      <div class="nav-label">Tracking</div>
+      <div class="nav-item" data-view="entry">✏️ New Entry</div>
+      <div class="nav-item" data-view="timer">⏱️ Live Timer</div>
+      <div class="nav-label">Manage</div>
+      <div class="nav-item" data-view="members">👥 Team Members</div>
+      <div class="nav-item" data-view="settings">⚙️ Settings</div>
+    </div>
+    <div class="sync-status" id="syncStatus"><span class="dot gray"></span>Local only</div>
+  </aside>
+
+  <main class="main" id="mainContent"></main>
+</div>
+
+<script>
+// ============== DATA LAYER ==============
+// Hardcoded for Redstone Team — anyone opening this URL gets data automatically
+const HARDCODED_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbyn6CUACxQNwBk10Rytn7uDt8wr71BcVM0dt7SK1rdmiGRJHGmz8__8W-kKP_Ea9olJ/exec';
+const HARDCODED_EMAIL = 'anummuzaffar750@gmail.com';
+const AUTH_KEY = 'redstone_dash_auth_v1';
+
+// ============== AUTH ==============
+function getAuthPassword(){ return localStorage.getItem(AUTH_KEY) || ''; }
+function setAuthPassword(pw){ localStorage.setItem(AUTH_KEY, pw); }
+function clearAuth(){ localStorage.removeItem(AUTH_KEY); location.reload(); }
+
+async function verifyPassword(pw){
+  try{
+    const url = HARDCODED_SHEETS_URL + '?action=verify&password=' + encodeURIComponent(pw);
+    const res = await fetch(url);
+    const json = await res.json();
+    return json.ok === true && json.authenticated === true;
+  }catch(e){ return false; }
+}
+
+window.attemptLogin = async function(){
+  const input = document.getElementById('loginInput');
+  const btn = document.getElementById('loginBtn');
+  const err = document.getElementById('loginError');
+  const pw = input.value.trim();
+  if(!pw){ err.classList.add('show'); err.textContent = '⚠ Enter a password'; return; }
+  btn.disabled = true; btn.textContent = '🔍 Verifying...';
+  err.classList.remove('show');
+  const ok = await verifyPassword(pw);
+  btn.disabled = false; btn.textContent = '🔓 Access Dashboard';
+  if(ok){
+    setAuthPassword(pw);
+    document.getElementById('loginOverlay').style.display = 'none';
+    document.querySelector('.app').classList.add('unlocked');
+    init();
+  } else {
+    err.classList.add('show');
+    err.textContent = '⚠ Wrong password — please try again';
+    input.value = '';
+    input.focus();
+  }
+};
+
+(async function checkInitialAuth(){
+  const stored = getAuthPassword();
+  if(stored && await verifyPassword(stored)){
+    document.getElementById('loginOverlay').style.display = 'none';
+    document.querySelector('.app').classList.add('unlocked');
+    init();
+  }
+})();
+
+const KEY = 'teamReportData_v3';
+const defaultData = {
+  members: [
+    { id: 1, name: 'Sami', role: 'Developer', color: '#3b82f6' },
+    { id: 2, name: 'Raffay', role: 'Developer', color: '#22c55e' },
+    { id: 3, name: 'Husnain', role: 'Developer', color: '#f97316' },
+    { id: 4, name: 'Ahsan', role: 'Developer', color: '#7c3aed' }
+  ],
+  reports: [],
+  activeTimers: {},
+  settings: {
+    sheetsUrl: HARDCODED_SHEETS_URL,
+    autoSync: true,
+    lastSync: null,
+    emailRecipient: HARDCODED_EMAIL,
+    timezone: 'Asia/Karachi'
+  }
+};
+let data = JSON.parse(localStorage.getItem(KEY)) || JSON.parse(JSON.stringify(defaultData));
+// Force-override URL & email so deployed version always uses correct backend
+if(!data.activeTimers) data.activeTimers = {};
+if(!data.settings) data.settings = JSON.parse(JSON.stringify(defaultData.settings));
+data.settings.sheetsUrl = HARDCODED_SHEETS_URL;
+data.settings.emailRecipient = data.settings.emailRecipient || HARDCODED_EMAIL;
+if(data.settings.autoSync === undefined) data.settings.autoSync = true;
+
+function save(){
+  localStorage.setItem(KEY, JSON.stringify(data));
+  if(data.settings.autoSync && data.settings.sheetsUrl) syncToSheets(true);
+  updateSyncStatus();
+}
+function uid(){ return Date.now() + Math.floor(Math.random()*1000); }
+function today(){ return new Date().toISOString().split('T')[0]; }
+function nowTime(){ return new Date().toTimeString().slice(0,5); }
+function fmtDate(d){ return new Date(d).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'}); }
+function fmtTime(t){ return t || '—'; }
+function calcHours(login, logout){
+  if(!login || !logout) return 0;
+  const [lh,lm] = login.split(':').map(Number);
+  const [oh,om] = logout.split(':').map(Number);
+  const mins = (oh*60+om) - (lh*60+lm);
+  return mins > 0 ? +(mins/60).toFixed(2) : 0;
+}
+function projectHours(project){
+  if(!project.timeLogs || !project.timeLogs.length) return +project.hours || 0;
+  return project.timeLogs.reduce((s,l) => s + (l.duration || 0), 0);
+}
+function memberById(id){ return data.members.find(m => m.id === id) || {name:'Unknown', color:'#999'}; }
+function initials(name){ return name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2); }
+
+function updateSyncStatus(){
+  const el = document.getElementById('syncStatus');
+  if(!el) return;
+  if(data.settings.sheetsUrl){
+    const last = data.settings.lastSync ? new Date(data.settings.lastSync).toLocaleTimeString() : 'never';
+    el.innerHTML = `<span class="dot green"></span>Synced @ ${last}`;
+  } else {
+    el.innerHTML = `<span class="dot gray"></span>Local only`;
+  }
+}
+
+// ============== GOOGLE SHEETS SYNC ==============
+// New flow (v2): each team member maintains their OWN Google Sheet.
+// The Apps Script fetches from all member sheets and aggregates.
+// The dashboard reads the aggregated result via ?action=load.
+
+async function pullFromSheets(silent){
+  if(!data.settings.sheetsUrl){ if(!silent) alert('Set Apps Script URL in Settings first'); return; }
+  try{
+    const res = await fetch(data.settings.sheetsUrl + '?action=load&password=' + encodeURIComponent(getAuthPassword()));
+    const json = await res.json();
+    if(json.code === 401){ clearAuth(); return false; }
+    if(json.members && json.reports){
+      data.members = json.members;
+      data.reports = json.reports;
+      data.settings.lastSync = new Date().toISOString();
+      localStorage.setItem(KEY, JSON.stringify(data));
+      updateSyncStatus();
+      if(!silent){ alert('✓ Loaded from Sheets! ' + json.reports.length + ' reports across ' + json.members.length + ' members.'); navTo('dashboard'); }
+      return true;
+    } else {
+      if(!silent) alert('No data found in Sheets. Try "Fetch Now" first.');
+    }
+  }catch(e){ if(!silent) alert('Load failed: ' + e.message); }
+  return false;
+}
+
+async function fetchNowFromMemberSheets(){
+  if(!data.settings.sheetsUrl){ alert('Set Apps Script URL in Settings first'); return; }
+  try{
+    const res = await fetch(data.settings.sheetsUrl + '?action=fetchNow&password=' + encodeURIComponent(getAuthPassword()));
+    const json = await res.json();
+    if(json.code === 401){ clearAuth(); return; }
+    if(json.ok){
+      alert('✓ ' + (json.message || 'Fetched from member sheets'));
+      await pullFromSheets(true);
+      navTo('dashboard');
+    } else if(json.error){
+      alert('Fetch error: ' + json.error);
+    }
+  }catch(e){ alert('Fetch failed: ' + e.message); }
+}
+
+// Backwards compat for "auto-sync on save" — disabled in v2 (data is read-only from member sheets)
+async function syncToSheets(silent){
+  if(!silent) alert('In v2, data flows FROM member sheets TO dashboard.\nUse "🔄 Fetch Now" instead — this pulls latest data from each member\'s Google Sheet.');
+}
+
+// ============== VIEWS ==============
+const main = document.getElementById('mainContent');
+
+function navTo(view){
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.view === view));
+  views[view]();
+  updateSyncStatus();
+}
+document.querySelectorAll('.nav-item').forEach(n => n.addEventListener('click', () => navTo(n.dataset.view)));
+
+const views = {};
+
+views.dashboard = function(){
+  const selectedDate = window._dashboardDate || today();
+  const dayReports = data.reports.filter(r => r.date === selectedDate);
+  const totalHoursToday = dayReports.reduce((s,r) => s + (r.projects?.reduce((ss,p) => ss + projectHours(p), 0) || 0), 0);
+  const totalProjectsToday = dayReports.reduce((s,r) => s + (r.projects?.length || 0), 0);
+  const reportingMembers = new Set(dayReports.map(r => r.memberId)).size;
+  const activeTimerCount = Object.keys(data.activeTimers).length;
+  const isToday = selectedDate === today();
+
+  // Build date pills (all dates with reports, newest first)
+  const dateMap = {};
+  data.reports.forEach(r => {
+    if(!r.date) return;
+    if(!dateMap[r.date]) dateMap[r.date] = new Set();
+    dateMap[r.date].add(r.memberId);
+  });
+  const allDates = Object.keys(dateMap).sort().reverse();
+
+  main.innerHTML = `
+    <div class="header">
+      <div>
+        <h2>Dashboard</h2>
+        <p>${isToday ? 'Today' : 'Viewing'}: ${fmtDate(selectedDate)}</p>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        ${data.settings.sheetsUrl ? `<button class="btn btn-warning" onclick="fetchNowFromMemberSheets()">🔄 Fetch From Sheets</button><button class="btn btn-outline" onclick="pullFromSheets(false)">⬇️ Refresh</button>` : ''}
+        <button class="btn btn-outline" onclick="navTo('timer')">⏱️ Live Timer</button>
+        <button class="btn btn-primary" onclick="navTo('entry')">+ New Entry</button>
+      </div>
+    </div>
+
+    <div class="card no-print" style="padding:16px">
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px">
+        <strong style="font-size:13px">📅 Filter by date:</strong>
+        <input type="date" id="dashDate" value="${selectedDate}" onchange="setDashboardDate(this.value)" style="padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px">
+        <button class="btn btn-outline btn-sm" onclick="setDashboardDate('${today()}')">Today</button>
+        ${!isToday ? '<button class="btn btn-primary btn-sm" onclick="setDashboardDate(\'' + today() + '\')">← Back to Today</button>' : ''}
+        <span style="margin-left:auto;color:var(--muted);font-size:12px">${dayReports.length} report${dayReports.length===1?'':'s'} for this date</span>
+      </div>
+      ${allDates.length > 0 ? `
+        <div style="border-top:1px solid var(--border);padding-top:12px">
+          <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Click any date with data:</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;max-height:120px;overflow-y:auto">
+            ${allDates.map(d => {
+              const memberCount = dateMap[d].size;
+              const isActive = d === selectedDate;
+              const dayName = new Date(d).toLocaleDateString('en-GB', { weekday: 'short' });
+              const dayNum = new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+              return `<button onclick="setDashboardDate('${d}')" style="padding:6px 10px;border:2px solid ${isActive ? 'var(--primary)' : 'var(--border)'};background:${isActive ? 'var(--primary)' : '#fff'};color:${isActive ? '#fff' : 'var(--text)'};border-radius:6px;cursor:pointer;font-size:11px;font-weight:600;display:inline-flex;flex-direction:column;align-items:center;gap:1px;min-width:60px">
+                <span style="font-size:9px;opacity:0.7">${dayName}</span>
+                <span>${dayNum}</span>
+                <span style="font-size:9px;background:${isActive ? 'rgba(255,255,255,0.25)' : 'var(--bg)'};padding:1px 5px;border-radius:8px">${memberCount}/${data.members.length}</span>
+              </button>`;
+            }).join('')}
+          </div>
+        </div>
+      ` : '<div style="font-size:12px;color:var(--muted)">No data yet — click 🔄 Fetch From Sheets to load.</div>'}
+    </div>
+
+    ${!data.settings.sheetsUrl ? `<div class="alert alert-info">💡 <strong>Connect to member sheets:</strong> Go to ⚙️ Settings → paste your Apps Script URL to auto-pull from each member's Google Sheet daily.</div>` : ''}
+    ${activeTimerCount > 0 ? `<div class="alert alert-warning">⏱️ <strong>${activeTimerCount} timer(s) currently running</strong> — <a href="#" onclick="navTo('timer');return false">view live timers</a></div>` : ''}
+
+    <div class="stat-grid">
+      <div class="stat-card blue">
+        <div class="stat-label">Reporting on ${isToday ? 'Today' : fmtDate(selectedDate)}</div>
+        <div class="stat-value">${reportingMembers} / ${data.members.length}</div>
+        <div class="stat-sub">team members submitted</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-label">Total Hours</div>
+        <div class="stat-value">${totalHoursToday.toFixed(1)}h</div>
+        <div class="stat-sub">${isToday ? 'tracked today' : 'on ' + fmtDate(selectedDate)}</div>
+      </div>
+      <div class="stat-card orange">
+        <div class="stat-label">Projects Worked On</div>
+        <div class="stat-value">${totalProjectsToday}</div>
+        <div class="stat-sub">${isToday ? 'today' : 'this date'}</div>
+      </div>
+      <div class="stat-card purple">
+        <div class="stat-label">Total Reports</div>
+        <div class="stat-value">${data.reports.length}</div>
+        <div class="stat-sub">all-time</div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="card">
+        <div class="card-title">📅 ${isToday ? "Today's Status" : fmtDate(selectedDate) + ' Status'}</div>
+        ${data.members.map(m => {
+          const r = dayReports.find(x => x.memberId === m.id);
+          if(r){
+            const hrs = (r.projects?.reduce((s,p) => s + projectHours(p), 0) || 0).toFixed(1);
+            return `<div style="padding:10px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
+              <div class="avatar" style="background:${m.color}">${initials(m.name)}</div>
+              <div style="flex:1">
+                <strong>${m.name}</strong>
+                <div style="font-size:12px;color:var(--muted)">${r.loginTime || '?'} → ${r.logoutTime || 'in progress'} • ${r.projects?.length || 0} projects • ${hrs}h tracked</div>
+              </div>
+              <span class="badge ${r.logoutTime ? 'badge-green':'badge-orange'}">${r.logoutTime ? 'Done' : 'Working'}</span>
+            </div>`;
+          }
+          return `<div style="padding:10px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
+            <div class="avatar" style="background:${m.color}">${initials(m.name)}</div>
+            <div style="flex:1">
+              <strong>${m.name}</strong>
+              <div style="font-size:12px;color:var(--muted)">No report yet</div>
+            </div>
+            <span class="badge badge-gray">Pending</span>
+          </div>`;
+        }).join('')}
+      </div>
+
+      <div class="card">
+        <div class="card-title">⏱️ Hours Per Member ${isToday ? '(Today)' : '(' + fmtDate(selectedDate) + ')'}</div>
+        ${dayReports.length === 0 ? '<div class="empty">No data for this date</div>' : '<div class="chart-container"><canvas id="hoursChart"></canvas></div>'}
+        ${dayReports.length > 0 ? `<div style="margin-top:14px;text-align:center"><button class="btn btn-primary btn-sm" onclick="exportDashboardDatePDF('${selectedDate}')">📄 Export This Date PDF</button></div>` : ''}
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📜 Recent Activity</div>
+      <table>
+        <thead><tr><th>Date</th><th>Member</th><th>Login</th><th>Logout</th><th>Hours</th><th>Projects</th></tr></thead>
+        <tbody>
+        ${data.reports.slice().sort((a,b) => b.date.localeCompare(a.date)).slice(0,10).map(r => {
+          const m = memberById(r.memberId);
+          const hrs = (r.projects?.reduce((s,p) => s + projectHours(p), 0) || 0).toFixed(1);
+          return `<tr>
+            <td>${fmtDate(r.date)}</td>
+            <td><span class="member-pill"><span class="avatar" style="background:${m.color};width:22px;height:22px;font-size:10px">${initials(m.name)}</span>${m.name}</span></td>
+            <td>${fmtTime(r.loginTime)}</td>
+            <td>${fmtTime(r.logoutTime)}</td>
+            <td><strong>${hrs}h</strong></td>
+            <td>${r.projects?.length || 0}</td>
+          </tr>`;
+        }).join('') || '<tr><td colspan="6" class="empty">No reports yet — add your first entry!</td></tr>'}
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  setTimeout(() => {
+    const ctx = document.getElementById('hoursChart');
+    if(!ctx) return;
+    new Chart(ctx, {
+      type:'bar',
+      data:{
+        labels: data.members.map(m => m.name),
+        datasets:[{
+          label:'Hours',
+          data: data.members.map(m => {
+            const r = dayReports.find(x => x.memberId === m.id);
+            return r ? (r.projects?.reduce((s,p) => s + projectHours(p), 0) || 0) : 0;
+          }),
+          backgroundColor: data.members.map(m => m.color)
+        }]
+      },
+      options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true, title:{display:true,text:'Hours'} } } }
+    });
+  }, 50);
+};
+
+window.setDashboardDate = function(d){
+  window._dashboardDate = d;
+  views.dashboard();
+};
+
+window.exportDashboardDatePDF = function(date){
+  // Switch to combined report filtered to this date and export
+  window._dashboardDate = date;
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.view === 'combined'));
+  views.combined();
+  setTimeout(() => {
+    document.getElementById('dateFrom').value = date;
+    document.getElementById('dateTo').value = date;
+    renderCombined(date, date);
+    setTimeout(() => exportCombinedPDF(), 500);
+  }, 200);
+};
+
+views.entry = function(){
+  main.innerHTML = `
+    <div class="header">
+      <div><h2>New Daily Entry</h2><p>Add or update a team member's report</p></div>
+    </div>
+
+    <div class="card">
+      <div class="form-grid">
+        <div class="field">
+          <label>Team Member</label>
+          <select id="entryMember">
+            ${data.members.map(m => `<option value="${m.id}">${m.name}</option>`).join('')}
+          </select>
+        </div>
+        <div class="field">
+          <label>Date</label>
+          <input type="date" id="entryDate" value="${today()}">
+        </div>
+        <div class="field">
+          <label>Login Time</label>
+          <input type="time" id="entryLogin">
+        </div>
+        <div class="field">
+          <label>Logout Time (optional, fill at end of day)</label>
+          <input type="time" id="entryLogout">
+        </div>
+      </div>
+
+      <div style="margin-top:20px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <strong>Projects Worked On Today</strong>
+          <button class="btn btn-outline btn-sm" onclick="addProjectRow()">+ Add Project</button>
+        </div>
+        <div id="projectRows"></div>
+      </div>
+
+      <div class="field" style="margin-top:20px">
+        <label>Notes / End-of-Day Summary</label>
+        <textarea id="entryNotes" placeholder="Anything else you want to mention about today..."></textarea>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-top:20px">
+        <button class="btn btn-success" onclick="saveEntry()">💾 Save Report</button>
+        <button class="btn btn-outline" onclick="navTo('dashboard')">Cancel</button>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('entryMember').addEventListener('change', loadEntryIfExists);
+  document.getElementById('entryDate').addEventListener('change', loadEntryIfExists);
+  loadEntryIfExists();
+};
+
+window.addProjectRow = function(p = {}){
+  const div = document.createElement('div');
+  div.className = 'project-row';
+  const logs = p.timeLogs || [];
+  div.innerHTML = `
+    <div class="pr-grid">
+      <input placeholder="Project name (e.g. Catalyst)" value="${p.name||''}" data-f="name">
+      <input type="number" min="0" step="0.5" placeholder="Hours" value="${p.hours||''}" data-f="hours" title="Manual hours (or use time logs below)">
+      <select data-f="status">
+        <option value="in_progress" ${p.status==='in_progress'?'selected':''}>In Progress</option>
+        <option value="completed" ${p.status==='completed'?'selected':''}>Done</option>
+        <option value="blocked" ${p.status==='blocked'?'selected':''}>Blocked</option>
+      </select>
+      <button class="btn btn-outline btn-sm" type="button" onclick="addTimeLogEntry(this)">+ Time Log</button>
+      <button class="btn-icon" type="button" onclick="this.closest('.project-row').remove()">✕</button>
+    </div>
+    <div class="pr-grid-2">
+      <textarea placeholder="What was done today" data-f="done">${p.done||''}</textarea>
+      <textarea placeholder="What is remaining" data-f="remaining">${p.remaining||''}</textarea>
+    </div>
+    <div class="time-logs" data-logs>
+      ${logs.length ? logs.map((l,i) => `<span class="time-log-item">${l.start}–${l.end} (${l.duration}h) <button onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;color:var(--danger);font-size:12px">×</button></span>`).join('') : '<span style="font-size:11px;color:var(--muted)">No time logs (use manual hours field above)</span>'}
+    </div>
+  `;
+  document.getElementById('projectRows').appendChild(div);
+};
+
+window.addTimeLogEntry = function(btn){
+  const start = prompt('Start time (HH:MM, 24h):', '09:00');
+  if(!start) return;
+  const end = prompt('End time (HH:MM, 24h):', '12:00');
+  if(!end) return;
+  const dur = calcHours(start, end);
+  if(dur <= 0){ alert('End must be after start'); return; }
+  const logsDiv = btn.closest('.project-row').querySelector('[data-logs]');
+  if(logsDiv.querySelector('span[style]')) logsDiv.innerHTML = '';
+  const span = document.createElement('span');
+  span.className = 'time-log-item';
+  span.innerHTML = `${start}–${end} (${dur}h) <button onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;color:var(--danger);font-size:12px">×</button>`;
+  logsDiv.appendChild(span);
+};
+
+window.loadEntryIfExists = function(){
+  const memberId = +document.getElementById('entryMember').value;
+  const date = document.getElementById('entryDate').value;
+  document.getElementById('projectRows').innerHTML = '';
+  const existing = data.reports.find(r => r.memberId === memberId && r.date === date);
+  if(existing){
+    document.getElementById('entryLogin').value = existing.loginTime || '';
+    document.getElementById('entryLogout').value = existing.logoutTime || '';
+    document.getElementById('entryNotes').value = existing.notes || '';
+    (existing.projects || []).forEach(addProjectRow);
+  } else {
+    document.getElementById('entryLogin').value = '';
+    document.getElementById('entryLogout').value = '';
+    document.getElementById('entryNotes').value = '';
+    addProjectRow();
+  }
+};
+
+window.saveEntry = function(){
+  const memberId = +document.getElementById('entryMember').value;
+  const date = document.getElementById('entryDate').value;
+  const loginTime = document.getElementById('entryLogin').value;
+  const logoutTime = document.getElementById('entryLogout').value;
+  const notes = document.getElementById('entryNotes').value;
+  const projects = [...document.querySelectorAll('#projectRows .project-row')].map(row => {
+    const obj = {};
+    row.querySelectorAll('[data-f]').forEach(el => obj[el.dataset.f] = el.value);
+    obj.hours = +obj.hours || 0;
+    // Parse time logs
+    obj.timeLogs = [...row.querySelectorAll('[data-logs] .time-log-item')].map(span => {
+      const m = span.textContent.match(/(\d{2}:\d{2})–(\d{2}:\d{2}) \((\d+\.?\d*)h\)/);
+      if(m) return { start: m[1], end: m[2], duration: +m[3] };
+    }).filter(Boolean);
+    return obj;
+  }).filter(p => p.name);
+
+  const idx = data.reports.findIndex(r => r.memberId === memberId && r.date === date);
+  const entry = { id: idx >= 0 ? data.reports[idx].id : uid(), memberId, date, loginTime, logoutTime, notes, projects };
+  if(idx >= 0) data.reports[idx] = entry; else data.reports.push(entry);
+  save();
+  alert('✓ Saved!');
+  navTo('dashboard');
+};
+
+// ============== LIVE TIMER VIEW ==============
+views.timer = function(){
+  main.innerHTML = `
+    <div class="header">
+      <div><h2>⏱️ Live Timer</h2><p>Start/stop timers — auto-logged to today's entry</p></div>
+    </div>
+    <div class="alert alert-info">💡 Pick a member, enter a project name, then click Start. Timer logs the time interval to that project for today's date.</div>
+
+    <div class="card">
+      <div class="form-grid">
+        <div class="field">
+          <label>Team Member</label>
+          <select id="timerMember">
+            ${data.members.map(m => `<option value="${m.id}">${m.name}</option>`).join('')}
+          </select>
+        </div>
+        <div class="field">
+          <label>Project Name</label>
+          <input id="timerProject" placeholder="e.g. Catalyst, AI Bot, Stribooking">
+        </div>
+      </div>
+      <button class="btn btn-success" onclick="startTimer()">▶️ Start Timer</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🟢 Active Timers</div>
+      <div id="activeTimersList"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📅 Today's Time Logs (Per Member)</div>
+      <div id="todayLogsList"></div>
+    </div>
+  `;
+  renderActiveTimers();
+  renderTodayLogs();
+};
+
+window.startTimer = function(){
+  const memberId = +document.getElementById('timerMember').value;
+  const project = document.getElementById('timerProject').value.trim();
+  if(!project){ alert('Enter a project name'); return; }
+  const tid = uid();
+  data.activeTimers[tid] = {
+    id: tid, memberId, project, startTime: new Date().toISOString(), date: today()
+  };
+  save();
+  document.getElementById('timerProject').value = '';
+  renderActiveTimers();
+};
+
+window.stopTimer = function(tid){
+  const t = data.activeTimers[tid];
+  if(!t) return;
+  const start = new Date(t.startTime);
+  const end = new Date();
+  const duration = +((end - start) / 3600000).toFixed(2);
+  if(duration < 0.01){
+    if(!confirm('Timer ran less than a minute. Stop anyway?')) return;
+  }
+  // Convert HH:MM
+  const startStr = start.toTimeString().slice(0,5);
+  const endStr = end.toTimeString().slice(0,5);
+
+  // Find or create today's report for this member
+  let report = data.reports.find(r => r.memberId === t.memberId && r.date === t.date);
+  if(!report){
+    report = { id: uid(), memberId: t.memberId, date: t.date, loginTime: startStr, logoutTime: '', notes: '', projects: [] };
+    data.reports.push(report);
+  }
+  // Find or create project
+  let project = report.projects.find(p => p.name === t.project);
+  if(!project){
+    project = { name: t.project, hours: 0, status: 'in_progress', done: '', remaining: '', timeLogs: [] };
+    report.projects.push(project);
+  }
+  if(!project.timeLogs) project.timeLogs = [];
+  project.timeLogs.push({ start: startStr, end: endStr, duration });
+
+  delete data.activeTimers[tid];
+  save();
+  renderActiveTimers();
+  renderTodayLogs();
+};
+
+function renderActiveTimers(){
+  const el = document.getElementById('activeTimersList');
+  if(!el) return;
+  const active = Object.values(data.activeTimers);
+  if(!active.length){ el.innerHTML = '<div class="empty">No active timers. Start one above!</div>'; return; }
+  el.innerHTML = active.map(t => {
+    const m = memberById(t.memberId);
+    return `<div style="padding:14px;border:2px solid var(--success);border-radius:8px;margin-bottom:10px;display:flex;align-items:center;gap:12px;background:#f0fdf4">
+      <div class="avatar" style="background:${m.color}">${initials(m.name)}</div>
+      <div style="flex:1">
+        <strong>${m.name}</strong> — ${t.project}
+        <div style="font-size:12px;color:var(--muted)">Started: ${new Date(t.startTime).toLocaleTimeString()}</div>
+      </div>
+      <div class="timer-display running" id="t-${t.id}">00:00:00</div>
+      <button class="btn btn-danger" onclick="stopTimer(${t.id})">⏹️ Stop</button>
+    </div>`;
+  }).join('');
+  // Tick
+  if(window._timerInterval) clearInterval(window._timerInterval);
+  window._timerInterval = setInterval(() => {
+    Object.values(data.activeTimers).forEach(t => {
+      const elT = document.getElementById('t-' + t.id);
+      if(elT){
+        const ms = Date.now() - new Date(t.startTime).getTime();
+        const h = Math.floor(ms/3600000);
+        const m = Math.floor((ms%3600000)/60000);
+        const s = Math.floor((ms%60000)/1000);
+        elT.textContent = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+      }
+    });
+  }, 1000);
+}
+
+function renderTodayLogs(){
+  const el = document.getElementById('todayLogsList');
+  if(!el) return;
+  const todayReps = data.reports.filter(r => r.date === today());
+  if(!todayReps.length){ el.innerHTML = '<div class="empty">No logs today yet.</div>'; return; }
+  el.innerHTML = data.members.map(m => {
+    const r = todayReps.find(x => x.memberId === m.id);
+    if(!r || !r.projects?.length) return '';
+    const totalH = r.projects.reduce((s,p) => s + projectHours(p), 0).toFixed(1);
+    return `<div style="margin-bottom:14px;padding:12px;border:1px solid var(--border);border-radius:6px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+        <div class="avatar" style="background:${m.color}">${initials(m.name)}</div>
+        <strong>${m.name}</strong>
+        <span style="margin-left:auto;color:var(--muted)">${totalH}h total today</span>
+      </div>
+      ${r.projects.map(p => `
+        <div style="padding:8px;background:#fafbfc;border-radius:4px;margin-bottom:4px;font-size:12px">
+          <strong>${p.name}</strong> — ${projectHours(p).toFixed(2)}h
+          ${(p.timeLogs||[]).map(l => `<span class="time-log-item">${l.start}–${l.end} (${l.duration}h)</span>`).join('')}
+        </div>
+      `).join('')}
+    </div>`;
+  }).join('') || '<div class="empty">No tracked time today.</div>';
+}
+
+views.members = function(){
+  main.innerHTML = `
+    <div class="header">
+      <div><h2>Team Members</h2><p>Manage your team</p></div>
+      <button class="btn btn-primary" onclick="addMember()">+ Add Member</button>
+    </div>
+    <div class="card">
+      ${data.members.map(m => `
+        <div class="member-card">
+          <div class="avatar lg" style="background:${m.color}">${initials(m.name)}</div>
+          <div class="member-info">
+            <h4>${m.name}</h4>
+            <p>${m.role}</p>
+          </div>
+          <button class="btn btn-outline" onclick="editMember(${m.id})">Edit</button>
+          <button class="btn btn-danger" onclick="deleteMember(${m.id})">Delete</button>
+        </div>
+      `).join('')}
+    </div>
+  `;
+};
+
+window.addMember = function(){
+  const name = prompt('Name?'); if(!name) return;
+  const role = prompt('Role?', 'Developer') || 'Developer';
+  const colors = ['#3b82f6','#22c55e','#f97316','#7c3aed','#14b8a6','#ef4444','#eab308'];
+  data.members.push({ id: uid(), name, role, color: colors[data.members.length % colors.length] });
+  save(); navTo('members');
+};
+window.editMember = function(id){
+  const m = data.members.find(x => x.id === id);
+  const name = prompt('Name?', m.name); if(!name) return;
+  const role = prompt('Role?', m.role) || m.role;
+  m.name = name; m.role = role; save(); navTo('members');
+};
+window.deleteMember = function(id){
+  if(!confirm('Delete this member? Their reports will remain.')) return;
+  data.members = data.members.filter(x => x.id !== id);
+  save(); navTo('members');
+};
+
+views.person = function(){
+  main.innerHTML = `
+    <div class="header">
+      <div><h2>Per-Person View</h2><p>Individual member reports & history</p></div>
+    </div>
+    <div class="tabs">
+      ${data.members.map((m,i) => `<button class="tab ${i===0?'active':''}" onclick="showPerson(${m.id}, this)">${m.name}</button>`).join('')}
+    </div>
+    <div id="personContent"></div>
+  `;
+  if(data.members[0]) showPerson(data.members[0].id, document.querySelector('.tab'));
+};
+
+window.showPerson = function(id, btn){
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  const m = memberById(id);
+  const reports = data.reports.filter(r => r.memberId === id).sort((a,b) => b.date.localeCompare(a.date));
+  const totalHours = reports.reduce((s,r) => s + (r.projects?.reduce((ss,p) => ss + projectHours(p), 0) || 0), 0);
+  const totalProjects = reports.reduce((s,r) => s + (r.projects?.length || 0), 0);
+  const completedTasks = reports.reduce((s,r) => s + (r.projects?.filter(p => p.status==='completed').length || 0), 0);
+
+  // Project breakdown
+  const projectMap = {};
+  reports.forEach(r => (r.projects||[]).forEach(p => {
+    projectMap[p.name] = (projectMap[p.name] || 0) + projectHours(p);
+  }));
+
+  document.getElementById('personContent').innerHTML = `
+    <div class="card" style="display:flex;align-items:center;gap:16px">
+      <div class="avatar lg" style="background:${m.color}">${initials(m.name)}</div>
+      <div style="flex:1"><h3 style="font-size:20px">${m.name}</h3><p style="color:var(--muted)">${m.role}</p></div>
+      <button class="btn btn-primary no-print" onclick="exportPersonPDF(${id})">📄 Export PDF</button>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat-card blue"><div class="stat-label">Total Reports</div><div class="stat-value">${reports.length}</div></div>
+      <div class="stat-card green"><div class="stat-label">Total Hours</div><div class="stat-value">${totalHours.toFixed(1)}h</div></div>
+      <div class="stat-card orange"><div class="stat-label">Project Entries</div><div class="stat-value">${totalProjects}</div></div>
+      <div class="stat-card purple"><div class="stat-label">Tasks Completed</div><div class="stat-value">${completedTasks}</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">⏱️ Time By Project</div>
+      <div class="chart-container"><canvas id="personProjChart"></canvas></div>
+    </div>
+
+    <div class="card" id="personPDFArea">
+      <div class="card-title">📋 Report History</div>
+      ${reports.map(r => `
+        <div class="report-block" style="border-left-color:${m.color}">
+          <div class="report-meta">
+            <strong>${fmtDate(r.date)}</strong>
+            <span>⏰ ${fmtTime(r.loginTime)} → ${fmtTime(r.logoutTime)} <strong>(${(r.projects?.reduce((s,p) => s + projectHours(p), 0) || 0).toFixed(1)}h)</strong></span>
+          </div>
+          <div class="report-projects">
+            ${(r.projects || []).map(p => `
+              <div class="project-item">
+                <h5>${p.name} <span class="badge badge-${p.status==='completed'?'green':p.status==='blocked'?'red':'orange'}">${p.status}</span> <span style="color:var(--muted);font-weight:normal">${projectHours(p).toFixed(1)}h</span></h5>
+                ${p.done ? `<p><span class="label">Done:</span> ${p.done}</p>` : ''}
+                ${p.remaining ? `<p><span class="label">Remaining:</span> ${p.remaining}</p>` : ''}
+                ${(p.timeLogs||[]).length ? `<p><span class="label">Time Logs:</span> ${p.timeLogs.map(l => `${l.start}–${l.end}`).join(', ')}</p>` : ''}
+              </div>
+            `).join('')}
+          </div>
+          ${r.notes ? `<p style="margin-top:8px;font-size:12px;color:var(--muted)"><strong>Notes:</strong> ${r.notes}</p>` : ''}
+        </div>
+      `).join('') || '<div class="empty">No reports yet for this member.</div>'}
+    </div>
+  `;
+
+  setTimeout(() => {
+    const ctx = document.getElementById('personProjChart');
+    if(!ctx || !Object.keys(projectMap).length) return;
+    new Chart(ctx, {
+      type:'doughnut',
+      data:{
+        labels: Object.keys(projectMap),
+        datasets:[{ data: Object.values(projectMap), backgroundColor:['#3b82f6','#22c55e','#f97316','#7c3aed','#14b8a6','#ef4444','#eab308'] }]
+      },
+      options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'right' } } }
+    });
+  }, 50);
+};
+
+window.exportPersonPDF = function(id){
+  const m = memberById(id);
+  const el = document.getElementById('personPDFArea');
+  html2pdf().set({
+    margin: 10,
+    filename: `${m.name}-report-${today()}.pdf`,
+    image: { type: 'jpeg', quality: 0.95 },
+    html2canvas: { scale: 2 },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  }).from(el).save();
+};
+
+views.combined = function(){
+  const dateFrom = document.querySelector('#dateFrom')?.value || today();
+  const dateTo = document.querySelector('#dateTo')?.value || today();
+
+  main.innerHTML = `
+    <div class="header">
+      <div><h2>Combined Report</h2><p>All team members in one view</p></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-outline no-print" onclick="window.print()">🖨️ Print</button>
+        <button class="btn btn-primary no-print" onclick="exportCombinedPDF()">📄 Download PDF</button>
+      </div>
+    </div>
+
+    <div class="card no-print">
+      <div class="filter-bar">
+        <label><strong>From:</strong></label>
+        <input type="date" id="dateFrom" value="${dateFrom}">
+        <label><strong>To:</strong></label>
+        <input type="date" id="dateTo" value="${dateTo}">
+        <button class="btn btn-primary" onclick="navTo('combined')">Apply</button>
+        <button class="btn btn-outline" onclick="setDateRange('today')">Today</button>
+        <button class="btn btn-outline" onclick="setDateRange('week')">This Week</button>
+        <button class="btn btn-outline" onclick="setDateRange('month')">This Month</button>
+        <button class="btn btn-outline" onclick="setDateRange('all')">All Time</button>
+      </div>
+      <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+        <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">📅 Click a date to view that day's report:</div>
+        <div id="datePills" style="display:flex;gap:6px;flex-wrap:wrap;max-height:120px;overflow-y:auto"></div>
+      </div>
+    </div>
+
+    <div id="combinedReport"></div>
+  `;
+
+  renderCombined(dateFrom, dateTo);
+};
+
+window.setDateRange = function(range){
+  const t = new Date();
+  let from = new Date(t), to = new Date(t);
+  if(range === 'week'){ from.setDate(t.getDate() - 6); }
+  else if(range === 'month'){ from.setDate(1); }
+  else if(range === 'all'){
+    // Find min and max dates in reports
+    const dates = data.reports.map(r => r.date).filter(Boolean).sort();
+    if(dates.length){
+      document.getElementById('dateFrom').value = dates[0];
+      document.getElementById('dateTo').value = dates[dates.length - 1];
+      renderCombined(dates[0], dates[dates.length - 1]);
+      return;
+    }
+  }
+  document.getElementById('dateFrom').value = from.toISOString().split('T')[0];
+  document.getElementById('dateTo').value = to.toISOString().split('T')[0];
+  renderCombined(document.getElementById('dateFrom').value, document.getElementById('dateTo').value);
+};
+
+window.filterToDate = function(date){
+  document.getElementById('dateFrom').value = date;
+  document.getElementById('dateTo').value = date;
+  renderCombined(date, date);
+};
+
+function renderDatePills(activeFrom, activeTo){
+  const el = document.getElementById('datePills');
+  if(!el) return;
+  // Get unique dates with report counts
+  const dateMap = {};
+  data.reports.forEach(r => {
+    if(!r.date) return;
+    if(!dateMap[r.date]) dateMap[r.date] = { count: 0, members: new Set() };
+    dateMap[r.date].count++;
+    dateMap[r.date].members.add(r.memberId);
+  });
+  const dates = Object.keys(dateMap).sort().reverse(); // newest first
+  if(!dates.length){
+    el.innerHTML = '<span style="color:var(--muted);font-size:12px">No dates available — fetch data first.</span>';
+    return;
+  }
+  el.innerHTML = dates.map(d => {
+    const info = dateMap[d];
+    const isActive = activeFrom === d && activeTo === d;
+    const dayName = new Date(d).toLocaleDateString('en-GB', { weekday: 'short' });
+    const dayNum = new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+    return `<button onclick="filterToDate('${d}')" style="padding:8px 12px;border:2px solid ${isActive ? 'var(--primary)' : 'var(--border)'};background:${isActive ? 'var(--primary)' : '#fff'};color:${isActive ? '#fff' : 'var(--text)'};border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:all 0.2s;display:inline-flex;flex-direction:column;align-items:center;gap:2px;min-width:64px">
+      <span style="font-size:10px;opacity:0.7">${dayName}</span>
+      <span>${dayNum}</span>
+      <span style="font-size:10px;background:${isActive ? 'rgba(255,255,255,0.25)' : 'var(--bg)'};padding:1px 6px;border-radius:8px">${info.members.size}/${data.members.length}</span>
+    </button>`;
+  }).join('');
+}
+
+function renderCombined(from, to){
+  renderDatePills(from, to);
+  const inRange = data.reports.filter(r => r.date >= from && r.date <= to);
+  const totalHours = inRange.reduce((s,r) => s + (r.projects?.reduce((ss,p) => ss + projectHours(p), 0) || 0), 0);
+  const totalProjects = inRange.reduce((s,r) => s + (r.projects?.length || 0), 0);
+  const completed = inRange.reduce((s,r) => s + (r.projects?.filter(p => p.status==='completed').length || 0), 0);
+  const blocked = inRange.reduce((s,r) => s + (r.projects?.filter(p => p.status==='blocked').length || 0), 0);
+
+  document.getElementById('combinedReport').innerHTML = `
+    <div id="pdfRoot">
+      <div class="print-only" style="text-align:center;margin-bottom:20px">
+        <h1 style="color:#1e3a5f">Team Daily Report</h1>
+        <p>Period: ${fmtDate(from)} — ${fmtDate(to)}</p>
+        <p style="font-size:11px;color:#666">Generated: ${new Date().toLocaleString()}</p>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-card blue"><div class="stat-label">Period</div><div class="stat-value" style="font-size:16px">${fmtDate(from)}<br>${fmtDate(to)}</div></div>
+        <div class="stat-card green"><div class="stat-label">Total Hours</div><div class="stat-value">${totalHours.toFixed(1)}h</div></div>
+        <div class="stat-card orange"><div class="stat-label">Projects Worked</div><div class="stat-value">${totalProjects}</div></div>
+        <div class="stat-card purple"><div class="stat-label">Tasks Completed</div><div class="stat-value">${completed}</div></div>
+      </div>
+
+      <div class="row">
+        <div class="card">
+          <div class="card-title">⏱️ Hours Per Member</div>
+          <div class="chart-container"><canvas id="combChart1"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-title">📊 Task Status</div>
+          <div class="chart-container"><canvas id="combChart2"></canvas></div>
+        </div>
+      </div>
+
+      ${data.members.map(m => {
+        const memberReports = inRange.filter(r => r.memberId === m.id).sort((a,b) => a.date.localeCompare(b.date));
+        if(memberReports.length === 0) return '';
+        const memberHours = memberReports.reduce((s,r) => s + (r.projects?.reduce((ss,p) => ss + projectHours(p), 0) || 0), 0);
+        return `
+          <div class="card" style="page-break-inside:avoid">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;padding-bottom:12px;border-bottom:2px solid ${m.color}">
+              <div class="avatar lg" style="background:${m.color}">${initials(m.name)}</div>
+              <div style="flex:1">
+                <h3 style="font-size:18px;color:var(--navy)">${m.name}</h3>
+                <p style="color:var(--muted);font-size:12px">${m.role} • ${memberReports.length} report(s) • ${memberHours.toFixed(1)}h total</p>
+              </div>
+            </div>
+            ${memberReports.map(r => `
+              <div class="report-block" style="border-left-color:${m.color}">
+                <div class="report-meta">
+                  <strong>${fmtDate(r.date)}</strong>
+                  <span>⏰ ${fmtTime(r.loginTime)} → ${fmtTime(r.logoutTime)} <strong>(${(r.projects?.reduce((s,p) => s + projectHours(p), 0) || 0).toFixed(1)}h)</strong></span>
+                </div>
+                ${(r.projects || []).map(p => `
+                  <div class="project-item">
+                    <h5>${p.name} <span class="badge badge-${p.status==='completed'?'green':p.status==='blocked'?'red':'orange'}">${p.status}</span> <span style="color:var(--muted);font-weight:normal">${projectHours(p).toFixed(1)}h</span></h5>
+                    ${p.done ? `<p><span class="label">Done:</span> ${p.done}</p>` : ''}
+                    ${p.remaining ? `<p><span class="label">Remaining:</span> ${p.remaining}</p>` : ''}
+                    ${(p.timeLogs||[]).length ? `<p><span class="label">Time Logs:</span> ${p.timeLogs.map(l => `${l.start}–${l.end}`).join(', ')}</p>` : ''}
+                  </div>
+                `).join('')}
+                ${r.notes ? `<p style="margin-top:8px;font-size:12px"><strong>Notes:</strong> ${r.notes}</p>` : ''}
+              </div>
+            `).join('')}
+          </div>
+        `;
+      }).join('') || '<div class="card empty">No reports in this date range.</div>'}
+    </div>
+  `;
+
+  setTimeout(() => {
+    const c1 = document.getElementById('combChart1');
+    if(c1){
+      new Chart(c1, {
+        type:'bar',
+        data:{
+          labels: data.members.map(m => m.name),
+          datasets:[{
+            label:'Hours',
+            data: data.members.map(m => inRange.filter(r => r.memberId === m.id).reduce((s,r) => s + (r.projects?.reduce((ss,p) => ss + projectHours(p), 0) || 0), 0)),
+            backgroundColor: data.members.map(m => m.color)
+          }]
+        },
+        options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}} }
+      });
+    }
+    const c2 = document.getElementById('combChart2');
+    if(c2){
+      new Chart(c2, {
+        type:'doughnut',
+        data:{
+          labels:['Completed','In Progress','Blocked'],
+          datasets:[{
+            data:[completed, totalProjects - completed - blocked, blocked],
+            backgroundColor:['#22c55e','#f97316','#ef4444']
+          }]
+        },
+        options:{ responsive:true, maintainAspectRatio:false }
+      });
+    }
+  }, 50);
+}
+
+window.exportCombinedPDF = function(){
+  const el = document.getElementById('pdfRoot');
+  html2pdf().set({
+    margin: 10,
+    filename: `team-combined-report-${today()}.pdf`,
+    image: { type: 'jpeg', quality: 0.95 },
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+  }).from(el).save();
+};
+
+views.settings = function(){
+  main.innerHTML = `
+    <div class="header"><div><h2>Settings</h2><p>Sync, automation & data management</p></div></div>
+
+    <div class="card">
+      <div class="card-title">🔗 Member Sheets Integration</div>
+      <div class="alert alert-info">📋 <strong>How it works (v2):</strong> Each team member maintains their own Google Sheet. The Apps Script fetches from all sheets and aggregates. This dashboard pulls the aggregated data.</div>
+      <div class="field">
+        <label>Apps Script Web App URL</label>
+        <input type="url" id="sheetsUrl" value="${data.settings.sheetsUrl||''}" placeholder="https://script.google.com/macros/s/AKfyc.../exec">
+        <small style="color:var(--muted);font-size:11px;margin-top:4px">Get this from Apps Script editor → Deploy → Web app</small>
+      </div>
+      <div class="field">
+        <label>Email Recipient (for 5 AM PKT daily report)</label>
+        <input type="email" id="emailRecipient" value="${data.settings.emailRecipient||''}" placeholder="manager@example.com">
+        <small style="color:var(--muted);font-size:11px;margin-top:4px">Set this in the Settings tab of your central Sheet too</small>
+      </div>
+      <div class="field" style="flex-direction:row;align-items:center;gap:10px">
+        <label class="toggle"><input type="checkbox" id="autoSync" ${data.settings.autoSync?'checked':''}><span class="slider"></span></label>
+        <label for="autoSync" style="margin:0">Auto-pull on dashboard open</label>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">
+        <button class="btn btn-primary" onclick="saveSettings()">💾 Save Settings</button>
+        <button class="btn btn-warning" onclick="fetchNowFromMemberSheets()">🔄 Fetch Now From Member Sheets</button>
+        <button class="btn btn-success" onclick="pullFromSheets(false)">⬇️ Refresh Dashboard Data</button>
+      </div>
+      <p style="color:var(--muted);font-size:12px;margin-top:14px">
+        🔄 <strong>Fetch Now</strong> = re-reads each member's sheet (slow, ~10s)<br>
+        ⬇️ <strong>Refresh</strong> = loads cached aggregated data (fast)<br>
+        At 5 AM PKT daily, the script auto-fetches and emails the report.
+      </p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">💾 Local Backup</div>
+      <p style="color:var(--muted);margin-bottom:14px">Even with cloud sync, keep local backups too.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn btn-primary" onclick="exportData()">💾 Export JSON</button>
+        <label class="btn btn-outline" style="cursor:pointer">📂 Import JSON
+          <input type="file" accept=".json" style="display:none" onchange="importData(event)">
+        </label>
+        <button class="btn btn-danger" onclick="resetData()">🗑️ Clear All Data</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📊 Stats</div>
+      <p>Members: <strong>${data.members.length}</strong></p>
+      <p>Total Reports: <strong>${data.reports.length}</strong></p>
+      <p>Active Timers: <strong>${Object.keys(data.activeTimers).length}</strong></p>
+      <p>Storage Used: <strong>${(JSON.stringify(data).length / 1024).toFixed(2)} KB</strong></p>
+      <p>Last Sync: <strong>${data.settings.lastSync ? new Date(data.settings.lastSync).toLocaleString() : 'Never'}</strong></p>
+    </div>
+
+    <div class="card" style="border-left:4px solid var(--brand)">
+      <div class="card-title">🔐 Security</div>
+      <p style="color:var(--muted);margin-bottom:14px">You are logged in. Logout will clear your saved password and require re-entering it next time.</p>
+      <button class="btn btn-danger" onclick="if(confirm('Logout from Redstone AI Dashboard?')) clearAuth()">🚪 Logout</button>
+    </div>
+  `;
+};
+
+window.saveSettings = function(){
+  data.settings.sheetsUrl = document.getElementById('sheetsUrl').value.trim();
+  data.settings.emailRecipient = document.getElementById('emailRecipient').value.trim();
+  data.settings.autoSync = document.getElementById('autoSync').checked;
+  save();
+  alert('✓ Settings saved!');
+};
+
+window.exportData = function(){
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type:'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `team-reports-backup-${today()}.json`;
+  a.click();
+};
+
+window.importData = function(ev){
+  const f = ev.target.files[0]; if(!f) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try{
+      const newData = JSON.parse(e.target.result);
+      if(!newData.members || !newData.reports) throw new Error('Invalid file');
+      if(confirm('This will replace your current data. Continue?')){
+        data = Object.assign({}, defaultData, newData);
+        save(); alert('✓ Imported!'); navTo('dashboard');
+      }
+    }catch(err){ alert('Invalid file: ' + err.message); }
+  };
+  reader.readAsText(f);
+};
+
+window.resetData = function(){
+  if(!confirm('⚠️ This will DELETE all members and reports. Continue?')) return;
+  if(!confirm('Are you absolutely sure?')) return;
+  data = JSON.parse(JSON.stringify(defaultData));
+  save(); navTo('dashboard');
+};
+
+// Initial render — called after successful login
+async function init(){
+  if(data.settings.autoSync && data.settings.sheetsUrl){
+    await pullFromSheets(true);
+  }
+  navTo('dashboard');
+  updateSyncStatus();
+}
+</script>
+</body>
+</html>
